@@ -46,26 +46,25 @@ def lookup(chord):
         "STKPWHR"   : ["",      1, 1]
     }
 
-    # Modal Verbs
-    # First form: present tense
-    # Second form: present tense, 3rd person singular conjugation
-    # Third form: past tense NOTE: Third forms with 'have' in them have special behaviours
+
+    # Modal verbs
+    # Forms: Normal, third person singular, past tense, negative normal, negative third person singular, negative past tense.
     modalverbs = {
 
         ""          : ["", "", "", "", "", ""],
         "A"         : ["can","can","could", "can't", "", "couldn't"],
-        "O"         : ["", "", "", "", "", ""],
-        "E"         : ["really","really","really"],
+        "O"         : ["have", "has", "had", "haven't", "hasn't", "hadn't"],
+        "E"         : ["do","does","did", "don't", "doesn't", "didn't"],
         "U"         : ["must","must", "must have", "must not", "", "must not have"],
         "AO"        : ["want to", "wants to", "wanted to", "don't want to", "doesn't want to", "didn't want to"],
         "AE"        : ["really don't", "really doesn't", "really didn't"],
-        "AU"        : ["ought to", "ought to", ""],
-        "OE"        : ["don't","doesn't","didn't"], #Jade
+        "AU"        : ["ought to", "ought to", "ought to have", "ought not to", "", "ought not to have"],
+        "OE"        : ["don't","doesn't","didn't"], 
         "OU"        : ["would", "would", "would have"],
         "EU"        : ["will", "will", "will have"],
         "AOE"       : ["don't even","doesn't even", "didn't even"],
         "AOU"       : ["do", "does", "did"],
-        "AEU"       : ["", "", ""],
+        "AEU"       : ["think you should", "thinks you should", "think you should have", "don't think you should", "doesn't think you should", "don't think you should have"],
         "OEU"       : ["don't really","doesn't really", "didn't really"],
         "AOEU"      : ["like to", "likes to", "liked to"]
     }
@@ -84,7 +83,6 @@ def lookup(chord):
         "FL"        : ["feel", "felt", "that"],
         "BL"        : ["believe", "believed", "that"],
         "RPL"       : ["remember", "remembered", "that"],
-        "PB"        : ["know", "knew", "that"],
         "RBG"       : ["care", "cared", "about"],
         "GT"        : ["get", "got", "to"],
         "LG"        : ["love", "loved", "to"],
@@ -98,17 +96,11 @@ def lookup(chord):
     }
 
     # Irregular verbs
-    # First form: Infinitive
-    # Second to Fourth forms: Present 1st person singular, 2nd person singular, 3rd person singular
-    # Fifth to Seventh forms: Present 1st person plural, 2nd person plural, 3rd person plural
-    # Eighth form: Past participle
-    # Ninth to Eleventh forms: Past 1st person singular, 2nd person singular, 3rd person singular
-    # Twelfth to Fourteenth forms: Past 1st person singular, 2nd person singular, 3rd person singular
-    # Fifteenth form: extra word!
     irregularverbs = {
         "R"         : ["be", "am", "are", "is", "been", "was", "were", "the"],
         "F"         : ["have", "have", "have", "has", "had", "had", "had", "the"],
-        "T"         : ["do", "do", "do", "does", "done", "did", "did"]
+        "T"         : ["do", "do", "do", "does", "done", "did", "did", "the"],
+        "PB"        : ["know", "know", "know", "knows", "known", "knew", "knew", "that"]
     }
 
     # Alternative starters
@@ -142,6 +134,7 @@ def lookup(chord):
     modal = False
     modalhashave = False
     thirdsingular = False
+    addemphasis = False
     addextra = False
     irregularverb = False
     
@@ -149,6 +142,9 @@ def lookup(chord):
     ### Performing checks
     # If the pronoun is third person and singular, it's a third person singular pronoun.
     if pronouns[pronoun][1] == 3 and pronouns[pronoun][2] == 1: thirdsingular = True 
+
+    # If we need to add emphasis
+    if "#" in emph: addemphasis = True
 
     # If we're using an alt starter instead of a pronoun
     if pronoun+ao in altstarters: requirealt = True
@@ -171,8 +167,6 @@ def lookup(chord):
     # Checking if the verb is irregular
     if verb in irregularverbs:
         irregularverb = True
-
-    # Pronoun person and singularity calculation
         
 
     ###########################################
@@ -188,15 +182,20 @@ def lookup(chord):
         # Pronouns
         output.append(pronouns[pronoun][0])
 
+        # Emphasis
+        if addemphasis: output.append(emphasis)
+
 
         # Verbs
         if  irregularverb:
             if pasttense:
                 if modal:    
                     if modalhashave:
-                        output.append(modalverbs[modalverb][modalverbvalue+2] + " " + irregularverbs[verb][4])
+                        output.append(modalverbs[modalverb][modalverbvalue+2]) 
+                        output.append(irregularverbs[verb][4])
                     else:
-                        output.append(modalverbs[modalverb][modalverbvalue+2] + " " + irregularverbs[verb][0])
+                        output.append(modalverbs[modalverb][modalverbvalue+2]) 
+                        output.append(irregularverbs[verb][0])
                 else:    
                     if pronouns[pronoun][1] == 1 and pronouns[pronoun][2] == 1:
                         output.append(irregularverbs[verb][5])
@@ -207,7 +206,12 @@ def lookup(chord):
 
             else:
                 if modal:
-                    output.append(modalverbs[modalverb][modalverbvalue+1] + " " + irregularverbs[verb][0])
+                    if thirdsingular:
+                        output.append(modalverbs[modalverb][modalverbvalue+1])
+                        output.append(irregularverbs[verb][0])
+                    else:
+                        output.append(modalverbs[modalverb][modalverbvalue]) 
+                        output.append(irregularverbs[verb][0])
                 else:
                     if pronouns[pronoun][2] == 2:
                         output.append(irregularverbs[verb][2])
@@ -225,24 +229,33 @@ def lookup(chord):
             if pasttense:
                 if modal:
                     if modalhashave:
-                        output.append(modalverbs[modalverb][modalverbvalue+2] + " " + verbs[verb][1])
+                        output.append(modalverbs[modalverb][modalverbvalue+2]) 
+                        output.append(verbs[verb][1])
                     else:
-                        output.append(modalverbs[modalverb][modalverbvalue+2] + " " + verbs[verb][0])
+                        output.append(modalverbs[modalverb][modalverbvalue+2]) 
+                        output.append(verbs[verb][0])
                 else:
                     output.append(verbs[verb][1])
             
             else:
                 if modal:
                     if thirdsingular:
-                        output.append(modalverbs[modalverb][modalverbvalue+1] + " " + verbs[verb][0])
+                        output.append(modalverbs[modalverb][modalverbvalue+1]) 
+                        output.append(verbs[verb][0])
                     else:
-                        output.append(modalverbs[modalverb][modalverbvalue] + " " + verbs[verb][0])
+                        output.append(modalverbs[modalverb][modalverbvalue]) 
+                        output.append(verbs[verb][0])
                 else:
                     if thirdsingular:
                         output.append(verbs[verb][0] + "s")
                     else:
                         output.append(verbs[verb][0])
 
+    # Handling present perfect tense
+    if modalverbs[modalverb][0] == "have":
+        output.pop()
+        if irregularverb: output.append(irregularverbs[verb][4])
+        else: output.append(verbs[verb][1])
 
     # Add optional extra word if required
     if addextra:
